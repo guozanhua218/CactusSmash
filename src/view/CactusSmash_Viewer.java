@@ -6,10 +6,12 @@ import java.util.HashMap;
 import model.Game;
 import model.HumanFighter;
 import model.KinectFighter;
+import model.SimulatedFighter;
 import model.Skeletal;
 import processing.core.*;
 import ddf.minim.*;
 import controller.GameController;
+
 
 
 public class CactusSmash_Viewer extends PApplet {
@@ -52,7 +54,7 @@ public class CactusSmash_Viewer extends PApplet {
 		// Set up background
 		size(1024, 768, P2D);   // will need to uncomment
 		background(153, 153, 0);
-		backgroundImage = loadImage("Resources/1024Background.jpg");
+		backgroundImage = loadImage("./Resources/1024Background.jpg");
 		setButtons();
 		frameRate(12);
 		start = false;
@@ -60,7 +62,7 @@ public class CactusSmash_Viewer extends PApplet {
 		// Set up sound objects
 		Minim minim; //audio context
 		minim = new Minim(this);
-		hitSound = minim.loadFile("Resources/Punch.mp3");
+		hitSound = minim.loadFile("./Resources/Punch.mp3");
 
 		// Placing user and cactus
 		cactusHit = false;
@@ -71,16 +73,17 @@ public class CactusSmash_Viewer extends PApplet {
 		// Loads animation for cactus
 		loadSprites();
 
-		human = new KinectFighter(this);
+		//human = new KinectFighter(this);
+		human = new SimulatedFighter();
 
 	}
 
 	// Load the sprite animations
 	private void loadSprites() {
 		sprites = new HashMap<String, CactusSmash_Viewer.Animation>();
-		sprites.put("view/sprites/punchright_", new Animation("view/sprites/punchright_", 10));
+		sprites.put("view/sprites/punchright_", new Animation("sprites_large/punchright_", 10));
 		for (int i = 0; i < 10; i++) {
-			String file = "view/sprites/block_level_0" + i + "_";
+			String file = "sprites_large/block_level_0" + i + "_";
 			sprites.put(file, new Animation(file, 2));
 		}
 	}
@@ -224,10 +227,10 @@ public class CactusSmash_Viewer extends PApplet {
 		// Display the sprite at the position xpos, ypos
 		switch (game.getCactus().getState()) {
 		case Attack:
-			sprite = sprites.get("view/sprites/punchright_");
+			sprite = sprites.get("sprites_large/punchright_");
 			break;
 		case Idle:
-			sprite = sprites.get("view/sprites/block_level_05_");
+			sprite = sprites.get("sprites_large/block_level_05_");
 			break;
 
 		}
