@@ -1,5 +1,10 @@
 package model;
 
+/**
+ * @authors Ben Ackerman, Chris Carsey, Lorenzo Fusaro
+ * 
+ * @Description  Used to represent the methods and constants shared by all attacks 
+ */
 public abstract class Attack {
 	private int damage;
 	private int duration;

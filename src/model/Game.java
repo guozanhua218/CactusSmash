@@ -1,5 +1,10 @@
 package model;
 
+/**
+ * @authors Ben Ackerman, Chris Carsey, Lorenzo Fusaro
+ * 
+ * @Description  Used to keep track of the user and cactus 
+ */
 public class Game {
 	private Cactus cactus;
 	private User user;

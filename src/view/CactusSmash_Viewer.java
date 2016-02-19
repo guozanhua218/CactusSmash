@@ -4,18 +4,19 @@ import java.awt.Point;
 import java.util.HashMap;
 
 import model.Game;
+import model.HumanFighter;
+import model.KinectFighter;
+import model.Skeletal;
 import processing.core.*;
 import ddf.minim.*;
-import SimpleOpenNI.*;
 import controller.GameController;
-import KinectProjectorToolkit.*;
 
 
 public class CactusSmash_Viewer extends PApplet {
 
-	
+
 	private static final long serialVersionUID = 2418496950920397145L;
-	
+
 	// Instance variables
 	private Game game;
 	AudioPlayer hitSound;
@@ -28,8 +29,6 @@ public class CactusSmash_Viewer extends PApplet {
 	boolean start;      // Determines if game has stated
 	HashMap<String, Animation> sprites;
 	PImage backgroundImage; // Holds the background image
-	SimpleOpenNI kinect;
-	KinectProjectorToolkit kpc;
 	HumanFighter human;
 
 	// Buttons
@@ -72,19 +71,11 @@ public class CactusSmash_Viewer extends PApplet {
 		// Loads animation for cactus
 		loadSprites();
 
-		// setup Kinect
-		kinect = new SimpleOpenNI(this); 
-		kinect.enableDepth();
-		kinect.enableUser();
-		kinect.alternativeViewPointDepthToImage();
-
-		// setup Kinect Projector Toolkit
-		kpc = new KinectProjectorToolkit(this, kinect.depthWidth(), kinect.depthHeight());
-		kpc.loadCalibration("calibration.txt");
-		human = new HumanFighter();
+		human = new KinectFighter(this);
 
 	}
 
+	// Load the sprite animations
 	private void loadSprites() {
 		sprites = new HashMap<String, CactusSmash_Viewer.Animation>();
 		sprites.put("view/sprites/punchright_", new Animation("view/sprites/punchright_", 10));
@@ -95,15 +86,14 @@ public class CactusSmash_Viewer extends PApplet {
 	}
 
 	public void draw() {
-		// will be Ben's image
 		background(backgroundImage);
-
+		drawSkeleton();
 		drawButtons();
 		if(start) {
 			gameController.runUpdates();
 			this.drawCactus();
 			rect(game.getUser().getCoords().x-50, game.getUser().getCoords().y-50, 100, 100);
-			
+
 			if(cactusHit) {
 				hitSound.play();
 				cactusHit = false;
@@ -116,96 +106,64 @@ public class CactusSmash_Viewer extends PApplet {
 			}
 		}
 
-		kinect.update();
-		if(human.getData() != null) System.out.println("Right Hand Location: (" + human.getData()[0].x + ", " + human.getData()[0].y + "), " + kinect.getNumberOfUsers()); 
-		kpc.setDepthMapRealWorld(kinect.depthMapRealWorld());
-		drawProjectedSkeletons();
-		//System.out.println("Users: " + kinect.getUsers().length);
 	}
 
-	void drawProjectedSkeletons() {
-		int[] userList = kinect.getUsers();
-		for(int i=0; i<userList.length; i++) {
-			if(kinect.isTrackingSkeleton(userList[i])) {
-				PVector pHead = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_HEAD);
-				PVector pNeck = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_NECK);
-				PVector pTorso = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_TORSO);
-				PVector pLeftShoulder = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_SHOULDER);
-				PVector pRightShoulder = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-				PVector pLeftElbow = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_ELBOW);
-				PVector pRightElbow = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_ELBOW);
-				PVector pLeftHand = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_HAND);
-				PVector pRightHand = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_HAND);      
-				PVector pLeftHip = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_HIP);
-				PVector pRightHip = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_HIP);
-				PVector pLeftKnee = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_KNEE);
-				PVector pRightKnee = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_KNEE);
-				PVector pLeftFoot = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_LEFT_FOOT);
-				PVector pRightFoot = getProjectedJoint(userList[i], SimpleOpenNI.SKEL_RIGHT_FOOT);
+	// Draws the Skeleton on the screen
+	void drawSkeleton() {
+		Skeletal body = human.getSkeletal();
+		PVector pHead = body.getHead();
+		PVector pNeck = body.getNeck();
+		PVector pTorso = body.getTorso();
+		PVector pLeftShoulder = body.getLeftShoulder();
+		PVector pRightShoulder = body.getRightShoulder();
+		PVector pLeftElbow = body.getLeftElbow();
+		PVector pRightElbow = body.getRightElbow();
+		PVector pLeftHand = body.getLeftHand();
+		PVector pRightHand = body.getRightHand();    
+		PVector pLeftHip = body.getLeftHip();
+		PVector pRightHip = body.getRightHip();
+		PVector pLeftKnee = body.getLeftKnee();
+		PVector pRightKnee = body.getRightKnee();
+		PVector pLeftFoot = body.getLeftFoot();
+		PVector pRightFoot = body.getRightFoot();
 
-				stroke(0, 0, 255);
-				strokeWeight(16);
-				line(pHead.x, pHead.y, pNeck.x, pNeck.y);
-				line(pNeck.x, pNeck.y, pTorso.x, pTorso.y);
-				line(pNeck.x, pNeck.y, pLeftShoulder.x, pLeftShoulder.y);
-				line(pLeftShoulder.x, pLeftShoulder.y, pLeftElbow.x, pLeftElbow.y);
-				line(pLeftElbow.x, pLeftElbow.y, pLeftHand.x, pLeftHand.y);
-				line(pNeck.x, pNeck.y, pRightShoulder.x, pRightShoulder.y);
-				line(pRightShoulder.x, pRightShoulder.y, pRightElbow.x, pRightElbow.y);
-				line(pRightElbow.x, pRightElbow.y, pRightHand.x, pRightHand.y);
-				line(pTorso.x, pTorso.y, pLeftHip.x, pLeftHip.y);
-				line(pLeftHip.x, pLeftHip.y, pLeftKnee.x, pLeftKnee.y);
-				line(pLeftKnee.x, pLeftKnee.y, pLeftFoot.x, pLeftFoot.y);
-				line(pTorso.x, pTorso.y, pRightHip.x, pRightHip.y);
-				line(pRightHip.x, pRightHip.y, pRightKnee.x, pRightKnee.y);
-				line(pRightKnee.x, pRightKnee.y, pRightFoot.x, pRightFoot.y);   
+		stroke(0, 0, 255);
+		strokeWeight(16);
+		line(pHead.x, pHead.y, pNeck.x, pNeck.y);
+		line(pNeck.x, pNeck.y, pTorso.x, pTorso.y);
+		line(pNeck.x, pNeck.y, pLeftShoulder.x, pLeftShoulder.y);
+		line(pLeftShoulder.x, pLeftShoulder.y, pLeftElbow.x, pLeftElbow.y);
+		line(pLeftElbow.x, pLeftElbow.y, pLeftHand.x, pLeftHand.y);
+		line(pNeck.x, pNeck.y, pRightShoulder.x, pRightShoulder.y);
+		line(pRightShoulder.x, pRightShoulder.y, pRightElbow.x, pRightElbow.y);
+		line(pRightElbow.x, pRightElbow.y, pRightHand.x, pRightHand.y);
+		line(pTorso.x, pTorso.y, pLeftHip.x, pLeftHip.y);
+		line(pLeftHip.x, pLeftHip.y, pLeftKnee.x, pLeftKnee.y);
+		line(pLeftKnee.x, pLeftKnee.y, pLeftFoot.x, pLeftFoot.y);
+		line(pTorso.x, pTorso.y, pRightHip.x, pRightHip.y);
+		line(pRightHip.x, pRightHip.y, pRightKnee.x, pRightKnee.y);
+		line(pRightKnee.x, pRightKnee.y, pRightFoot.x, pRightFoot.y);   
 
-				fill(255, 0, 0);
-				noStroke();
-				ellipse(pHead.x, pHead.y, 20, 20);
-				ellipse(pNeck.x, pNeck.y, 20, 20);
-				ellipse(pTorso.x, pTorso.y, 20, 20);
-				ellipse(pLeftShoulder.x, pLeftShoulder.y, 20, 20);
-				ellipse(pRightShoulder.x, pRightShoulder.y, 20, 20);
-				ellipse(pLeftElbow.x, pLeftElbow.y, 20, 20);
-				ellipse(pRightElbow.x, pRightElbow.y, 20, 20);
-				ellipse(pLeftHand.x, pLeftHand.y, 20, 20);
-				ellipse(pRightHand.x, pRightHand.y, 20, 20);
-				ellipse(pLeftHip.x, pLeftHip.y, 20, 20);
-				ellipse(pRightHip.x, pRightHip.y, 20, 20);
-				ellipse(pLeftKnee.x, pLeftKnee.y, 20, 20);
-				ellipse(pRightKnee.x, pRightKnee.y, 20, 20);
-				ellipse(pLeftFoot.x, pLeftFoot.y, 20, 20);
-				ellipse(pRightFoot.x, pRightFoot.y, 20, 20);
-			}
-		}    
+		fill(255, 0, 0);
+		noStroke();
+		ellipse(pHead.x, pHead.y, 20, 20);
+		ellipse(pNeck.x, pNeck.y, 20, 20);
+		ellipse(pTorso.x, pTorso.y, 20, 20);
+		ellipse(pLeftShoulder.x, pLeftShoulder.y, 20, 20);
+		ellipse(pRightShoulder.x, pRightShoulder.y, 20, 20);
+		ellipse(pLeftElbow.x, pLeftElbow.y, 20, 20);
+		ellipse(pRightElbow.x, pRightElbow.y, 20, 20);
+		ellipse(pLeftHand.x, pLeftHand.y, 20, 20);
+		ellipse(pRightHand.x, pRightHand.y, 20, 20);
+		ellipse(pLeftHip.x, pLeftHip.y, 20, 20);
+		ellipse(pRightHip.x, pRightHip.y, 20, 20);
+		ellipse(pLeftKnee.x, pLeftKnee.y, 20, 20);
+		ellipse(pRightKnee.x, pRightKnee.y, 20, 20);
+		ellipse(pLeftFoot.x, pLeftFoot.y, 20, 20);
+		ellipse(pRightFoot.x, pRightFoot.y, 20, 20);
 	}
 
-	PVector getProjectedJoint(int userId, int jointIdx) {
-		PVector jointKinectRealWorld = new PVector();
-		PVector jointProjected = new PVector();
-		kinect.getJointPositionSkeleton(userId, jointIdx, jointKinectRealWorld);
-		jointProjected = kpc.convertKinectToProjector(jointKinectRealWorld);
-		return jointProjected;
-	}
-
-
-	// -----------------------------------------------------------------
-	// SimpleOpenNI events -- do not need to modify these...
-
-	void onNewUser(SimpleOpenNI curContext, int userId) {
-		println("onNewUser - userId: " + userId);
-		curContext.startTrackingSkeleton(userId);
-	}
-
-	void onLostUser(SimpleOpenNI curContext, int userId) {
-		println("onLostUser - userId: " + userId);
-	}
-
-	void onVisibleUser(SimpleOpenNI curContext, int userId) {
-		println("onVisibleUser - userId: " + userId);
-	}
-
+	// Set the location and status of all the buttons
 	public void setButtons() {
 		startButtonX = (width/2 - 40);
 		startButtonY = 5;
@@ -220,6 +178,8 @@ public class CactusSmash_Viewer extends PApplet {
 		healthBarUserWidth = 300;
 		healthBarUserLenght = 30;
 	}
+	
+	// Calling this method draws buttons on the screen
 	public void drawButtons() {
 		rect(startButtonX, startButtonY, startButtonWidth, startButtonLength);
 		fill(244, 0, 0);
@@ -233,13 +193,21 @@ public class CactusSmash_Viewer extends PApplet {
 		text("Mr. Cactus", 7, 31);
 	}
 
+	// Sets the start Variable to true if the start button is pushed
 	public void mousePressed() {
-		if (overStart(startButtonX, startButtonY, startButtonWidth, startButtonLength)) {
+		if (overButton(startButtonX, startButtonY, startButtonWidth, startButtonLength)) {
 			start = true;
 		}
 	}
-
-	boolean overStart(float x, float y, float width, float height)  {
+	
+	/**
+	 * @param x is the left.x coordinate of the button
+	 * @param y is the top.y coordinate of the button
+	 * @param width is the height of the button
+	 * @param height is the width of the button
+	 * @return True if the mouse is over the button else otherwise
+	 */
+	boolean overButton(float x, float y, float width, float height)  {
 		if (mouseX >= x && mouseX <= x+width && 
 				mouseY >= y && mouseY <= y+height) {
 			return true;
@@ -248,6 +216,7 @@ public class CactusSmash_Viewer extends PApplet {
 		}
 	}
 
+	// Draws the cactus opponent
 	private void drawCactus() {
 		Animation sprite = null;
 		Point coords = game.getCactus().getCoords();
@@ -265,6 +234,13 @@ public class CactusSmash_Viewer extends PApplet {
 		sprite.display(coords.x - sprite.getWidth()/2, ypos);
 	}
 
+	/**
+	 * @authors Ben Ackerman and Chris Carsey
+	 * @param imagePrefix is the prefix string for the sprite image
+	 * @param  count is the number of images
+	 * 
+	 * This class is used to create an image animation for the cactus
+	 */
 	class Animation {
 		PImage[] images;
 		int imageCount;
@@ -291,30 +267,22 @@ public class CactusSmash_Viewer extends PApplet {
 		}
 	}
 	
-	public class HumanFighter
-	{ 
-	    public HumanFighter() {}
-	    
-	    public PVector[] getData()
-	    {
-	        int user = 0;
-	        if(kinect.getNumberOfUsers() < 1)
-	        {
-	          return null; 
-	        }
-	        else
-	        {
-	           user = kinect.getUsers()[kinect.getNumberOfUsers() - 1];
-	        }
-	        PVector[] points = new PVector[6];
-	        points[0] = getProjectedJoint(user, SimpleOpenNI.SKEL_HEAD);
-	        points[1] = getProjectedJoint(user, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-	        points[2] = getProjectedJoint(user, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-	        points[3] = getProjectedJoint(user, SimpleOpenNI.SKEL_TORSO);
-	        points[4] = getProjectedJoint(user, SimpleOpenNI.SKEL_LEFT_HIP);
-	        points[5] = getProjectedJoint(user, SimpleOpenNI.SKEL_RIGHT_HIP);
-	        return points;
-	    }
-	}
+	//Not sure if this is needed until testing
+	/*	// -----------------------------------------------------------------
+			// SimpleOpenNI events -- do not need to modify these...
+
+			void onNewUser(SimpleOpenNI curContext, int userId) {
+				println("onNewUser - userId: " + userId);
+				curContext.startTrackingSkeleton(userId);
+			}
+
+			void onLostUser(SimpleOpenNI curContext, int userId) {
+				println("onLostUser - userId: " + userId);
+			}
+
+			void onVisibleUser(SimpleOpenNI curContext, int userId) {
+				println("onVisibleUser - userId: " + userId);
+			}*/
+
 }
 

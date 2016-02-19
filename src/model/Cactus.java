@@ -8,6 +8,11 @@ import model.attacks.BodyAttack;
 import model.attacks.HeadAttack;
 import model.attacks.IdleAttack;
 
+/**
+ * @authors Ben Ackerman, Chris Carsey, Lorenzo Fusaro
+ * 
+ * @Description  Used to represent the different states of the cactus fighter 
+ */
 public class Cactus extends Player {
 
 	private int startingHealth = 100;

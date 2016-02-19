@@ -2,6 +2,11 @@ package model;
 
 import java.awt.Point;
 
+/**
+ * @authors Ben Ackerman, Chris Carsey, Lorenzo Fusaro
+ * 
+ * @Description An abstract class used to represent different states of the player
+ */
 public abstract class Player {
 
 	// instance vars

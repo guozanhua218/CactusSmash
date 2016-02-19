@@ -10,6 +10,12 @@ import model.State;
 import model.Updateable;
 import model.User;
 
+/**
+ * @authors Ben Ackerman, Chris Carsey, Lorenzo Fusaro
+ * 
+ * @param A game object
+ * @Description  Used to control the cactus opponent 
+ */
 public class CactusController implements Updateable {
 
 	private Game game;
